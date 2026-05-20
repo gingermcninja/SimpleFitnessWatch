@@ -31,6 +31,7 @@ struct TimerScreenView: View {
         case .stopped: "Ready"
         case .running: "Workout"
         case .paused: "Paused"
+        case .pausedResting: "Paused"
         case .resting: "Rest"
         }
     }
@@ -40,25 +41,29 @@ struct TimerScreenView: View {
         case .stopped: .secondary
         case .running: .green
         case .paused: .yellow
+        case .pausedResting: .yellow
         case .resting: .blue
         }
     }
 
     private var timerDisplay: some View {
-        Text(formattedTime)
-            .font(.system(size: 48, weight: .bold, design: .monospaced))
-            .foregroundStyle(viewModel.timerMode == .resting ? .blue : .primary)
+        VStack {
+            Text(viewModel.formattedTime)
+                .font(.system(size: 48, weight: .bold, design: .monospaced))
+                .foregroundStyle(viewModel.timerMode == .resting ? .blue : .primary)
+            if viewModel.timerMode == .resting || viewModel.timerMode == .pausedResting {
+                Text(viewModel.formattedRestTime)
+                    .font(.system(size: 24, weight: .bold, design: .monospaced))
+                    .foregroundStyle(viewModel.timerMode == .resting ? .blue : .primary)
+            }
+        }
     }
 
-    private var formattedTime: String {
-        let minutes = viewModel.elapsedSeconds / 60
-        let seconds = viewModel.elapsedSeconds % 60
-        return String(format: "%02d:%02d", minutes, seconds)
-    }
+
 
     private var buttonGrid: some View {
         VStack(spacing: 6) {
-            HStack(spacing: 6) {
+            if viewModel.timerMode == .stopped {
                 TimerButton(
                     title: "Start",
                     systemImage: "play.fill",
@@ -66,19 +71,38 @@ struct TimerScreenView: View {
                 ) {
                     viewModel.startTimer(mode: .running)
                 }
-                .disabled(viewModel.timerMode == .running)
+            } else {
+                HStack(spacing: 6) {
+                    if viewModel.timerMode == .running || viewModel.timerMode == .resting {
+                        TimerButton(
+                            title: "Pause",
+                            systemImage: "pause.fill",
+                            tint: .yellow
+                        ) {
+                            viewModel.pauseTimer()
+                        }
+                    } else {
+                        TimerButton(
+                            title: "Resume",
+                            systemImage: "play.fill",
+                            tint: .green
+                        ) {
+                            let newMode: TimerMode = (viewModel.timerMode == .pausedResting) ? .resting : .running
+                            viewModel.startTimer(mode: newMode)
+                        }
+                    }
 
-                TimerButton(
-                    title: "Pause",
-                    systemImage: "pause.fill",
-                    tint: .yellow
-                ) {
-                    viewModel.pauseTimer()
+                    TimerButton(
+                        title: "Rest",
+                        systemImage: "bed.double.fill",
+                        tint: .blue
+                    ) {
+                        //viewModel.startTimer(mode: .resting)
+                        viewModel.startRestTimer()
+                    }
+                    .disabled(viewModel.timerMode == .resting || viewModel.timerMode == .pausedResting)
                 }
-                .disabled(viewModel.timerMode == .paused || viewModel.timerMode == .stopped)
-            }
 
-            HStack(spacing: 6) {
                 TimerButton(
                     title: "Stop",
                     systemImage: "stop.fill",
@@ -86,16 +110,6 @@ struct TimerScreenView: View {
                 ) {
                     viewModel.stopTimer()
                 }
-                .disabled(viewModel.timerMode == .stopped)
-
-                TimerButton(
-                    title: "Rest",
-                    systemImage: "bed.double.fill",
-                    tint: .blue
-                ) {
-                    viewModel.startTimer(mode: .resting)
-                }
-                .disabled(viewModel.timerMode == .resting || viewModel.timerMode == .stopped)
             }
         }
     }
