@@ -11,17 +11,15 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var selectedTab = 0
-    @State private var restPeriodSeconds: Int = 60
+    @StateObject private var timerScreenViewModel = TimerScreenViewModel(restPeriodSeconds: 60)
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            let timerScreenViewModel: TimerScreenViewModel = TimerScreenViewModel(restPeriodSeconds: restPeriodSeconds)
             TimerScreenView(viewModel: timerScreenViewModel)
                 .tag(0)
-            SettingsView(restPeriodSeconds: $restPeriodSeconds)
+            SettingsView(restPeriodSeconds: $timerScreenViewModel.restPeriodSeconds)
                 .tag(1)
         }
-        .tabViewStyle(.verticalPage)
     }
 }
 

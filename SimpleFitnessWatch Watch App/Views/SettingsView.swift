@@ -36,7 +36,3 @@ struct SettingsView: View {
 }
 
 
-#Preview {
-    @Previewable @State var restPeriodSeconds = 60
-    SettingsView(restPeriodSeconds: $restPeriodSeconds)
-}

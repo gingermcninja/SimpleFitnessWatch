@@ -8,10 +8,10 @@
 import SwiftUI
 
 struct TimerScreenView: View {
-    @State var viewModel: TimerScreenViewModel
+    @ObservedObject var viewModel: TimerScreenViewModel
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 4) {
             timerModeLabel
             timerDisplay
             buttonGrid
@@ -47,13 +47,15 @@ struct TimerScreenView: View {
     }
 
     private var timerDisplay: some View {
-        VStack {
+        VStack(spacing: 0) {
             Text(viewModel.formattedTime)
-                .font(.system(size: 48, weight: .bold, design: .monospaced))
+                .font(.system(size: 36, weight: .bold, design: .monospaced))
+                .minimumScaleFactor(0.7)
+                .lineLimit(1)
                 .foregroundStyle(viewModel.timerMode == .resting ? .blue : .primary)
             if viewModel.timerMode == .resting || viewModel.timerMode == .pausedResting {
                 Text(viewModel.formattedRestTime)
-                    .font(.system(size: 24, weight: .bold, design: .monospaced))
+                    .font(.system(size: 16, weight: .bold, design: .monospaced))
                     .foregroundStyle(viewModel.timerMode == .resting ? .blue : .primary)
             }
         }
@@ -62,7 +64,7 @@ struct TimerScreenView: View {
 
 
     private var buttonGrid: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 4) {
             if viewModel.timerMode == .stopped {
                 TimerButton(
                     title: "Start",
@@ -72,7 +74,7 @@ struct TimerScreenView: View {
                     viewModel.startTimer(mode: .running)
                 }
             } else {
-                HStack(spacing: 6) {
+                HStack(spacing: 4) {
                     if viewModel.timerMode == .running || viewModel.timerMode == .resting {
                         TimerButton(
                             title: "Pause",
@@ -129,7 +131,7 @@ struct TimerButton: View {
                 Text(title)
                     .font(.caption2)
             }
-            .frame(maxWidth: .infinity, minHeight: 44)
+            .frame(maxWidth: .infinity, minHeight: 36)
         }
         .tint(tint)
         .buttonStyle(.borderedProminent)

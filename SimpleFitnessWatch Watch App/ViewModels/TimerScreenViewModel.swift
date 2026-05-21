@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Observation
+import Combine
 import WatchKit
 
 enum TimerMode: Equatable {
@@ -16,16 +16,16 @@ enum TimerMode: Equatable {
     case pausedResting
     case resting
 }
-@Observable
-class TimerScreenViewModel {
-    var restPeriodSeconds: Int = 60
-    var elapsedSeconds: Int = 0
-    var elapsedRestSeconds: Int = 0
-    var timerMode: TimerMode = .stopped
-    var previousMode: TimerMode?
+
+class TimerScreenViewModel: ObservableObject {
+    @Published var restPeriodSeconds: Int = 60
+    @Published var elapsedSeconds: Int = 0
+    @Published var elapsedRestSeconds: Int = 0
+    @Published var timerMode: TimerMode = .stopped
+    @Published var previousMode: TimerMode?
     private var timer: Timer?
     private var restTimer: Timer?
-    
+
     init(restPeriodSeconds: Int) {
         self.restPeriodSeconds = restPeriodSeconds
     }
