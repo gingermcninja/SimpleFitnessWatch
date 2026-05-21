@@ -7,15 +7,19 @@
 
 import SwiftUI
 
+
+
 struct ContentView: View {
+    @State private var selectedTab = 0
+    @StateObject private var timerScreenViewModel = TimerScreenViewModel(restPeriodSeconds: 60)
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        TabView(selection: $selectedTab) {
+            TimerScreenView(viewModel: timerScreenViewModel)
+                .tag(0)
+            SettingsView(restPeriodSeconds: $timerScreenViewModel.restPeriodSeconds)
+                .tag(1)
         }
-        .padding()
     }
 }
 
