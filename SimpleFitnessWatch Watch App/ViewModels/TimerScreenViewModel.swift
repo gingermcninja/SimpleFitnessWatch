@@ -8,6 +8,7 @@
 import Foundation
 import Combine
 import WatchKit
+import HealthKit
 
 enum TimerMode: Equatable {
     case stopped
@@ -23,11 +24,19 @@ class TimerScreenViewModel: ObservableObject {
     @Published var elapsedRestSeconds: Int = 0
     @Published var timerMode: TimerMode = .stopped
     @Published var previousMode: TimerMode?
-    private var timer: Timer?
-    private var restTimer: Timer?
+
+    private var displayTimer: Timer?
+    private var timerStartDate: Date?
+    private var accumulatedSeconds: TimeInterval = 0
+    private var restStartDate: Date?
+    private var accumulatedRestSeconds: TimeInterval = 0
+    private var setRestStart: Bool = false
+
+    let workoutManager = WorkoutManager()
 
     init(restPeriodSeconds: Int) {
         self.restPeriodSeconds = restPeriodSeconds
+        workoutManager.requestAuthorization()
     }
 
     var formattedTime: String {
@@ -35,61 +44,97 @@ class TimerScreenViewModel: ObservableObject {
         let seconds = elapsedSeconds % 60
         return String(format: "%02d:%02d", minutes, seconds)
     }
-    
+
     var formattedRestTime: String {
         let minutes = elapsedRestSeconds / 60
         let seconds = elapsedRestSeconds % 60
         return String(format: "%02d:%02d", minutes, seconds)
     }
-    
-    func startTimer(mode: TimerMode) {
-        timerMode = mode
-        timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-            self?.elapsedSeconds += 1
-            guard let mode = self?.timerMode, let restTime = self?.elapsedRestSeconds, let restPeriod = self?.restPeriodSeconds else { return }
-            if mode == .resting {
-                self?.elapsedRestSeconds += 1
-                if restTime >= restPeriod {
-                    self?.stopRestTimer()
-                }
+
+    private func updateElapsedTime() {
+        let now = Date()
+        if let startDate = timerStartDate {
+            elapsedSeconds = Int(accumulatedSeconds + now.timeIntervalSince(startDate))
+        }
+        if let restStart = restStartDate {
+            let totalRest = Int(accumulatedRestSeconds + now.timeIntervalSince(restStart))
+            elapsedRestSeconds = totalRest
+            if totalRest >= restPeriodSeconds {
+                stopRestTimer()
             }
         }
+    }
+
+    private func startDisplayTimer() {
+        displayTimer?.invalidate()
+        displayTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+            self?.updateElapsedTime()
+        }
+    }
+
+    func startTimer(mode: TimerMode) {
+        let wasStoppedOrFirstStart = timerMode == .stopped
+        let wasPaused = timerMode == .paused || timerMode == .pausedResting
+        timerMode = mode
+
+        if wasStoppedOrFirstStart {
+            accumulatedSeconds = 0
+            timerStartDate = Date()
+            workoutManager.startWorkout()
+        } else if wasPaused {
+            timerStartDate = Date()
+            if mode == .resting {
+                restStartDate = Date()
+            }
+            workoutManager.resumeWorkout()
+        }
+
+        startDisplayTimer()
+        updateElapsedTime()
     }
 
     func pauseTimer() {
         timerMode = timerMode == .resting ? .pausedResting : .paused
-        timer?.invalidate()
-        timer = nil
+
+        if let startDate = timerStartDate {
+            accumulatedSeconds += Date().timeIntervalSince(startDate)
+            timerStartDate = nil
+        }
+        if let restStart = restStartDate {
+            accumulatedRestSeconds += Date().timeIntervalSince(restStart)
+            restStartDate = nil
+        }
+
+        displayTimer?.invalidate()
+        displayTimer = nil
+        workoutManager.pauseWorkout()
     }
 
     func stopTimer() {
         timerMode = .stopped
-        timer?.invalidate()
-        timer = nil
+        displayTimer?.invalidate()
+        displayTimer = nil
+        timerStartDate = nil
+        accumulatedSeconds = 0
+        restStartDate = nil
+        accumulatedRestSeconds = 0
         elapsedSeconds = 0
+        elapsedRestSeconds = 0
+        workoutManager.stopWorkout()
     }
-    
+
     func startRestTimer() {
         previousMode = timerMode
         timerMode = .resting
-        /*
-        restTimer?.invalidate()
-        restTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-            self?.elapsedRestSeconds += 1
-            guard let restTime = self?.elapsedRestSeconds, let restPeriod = self?.restPeriodSeconds else { return }
-            if restTime >= restPeriod {
-                self?.stopRestTimer()
-            }
-        }
-         */
+        accumulatedRestSeconds = 0
+        restStartDate = Date()
     }
-    
+
     func stopRestTimer() {
         timerMode = previousMode ?? .running
         previousMode = nil
-        //restTimer?.invalidate()
-        //restTimer = nil
+        restStartDate = nil
+        accumulatedRestSeconds = 0
         elapsedRestSeconds = 0
         WKInterfaceDevice.current().play(.start)
     }
