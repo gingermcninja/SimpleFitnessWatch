@@ -124,10 +124,10 @@ class TimerScreenViewModel: ObservableObject {
     }
 
     func startRestTimer() {
+        restStartDate = Date()
         previousMode = timerMode
         timerMode = .resting
         accumulatedRestSeconds = 0
-        restStartDate = Date()
     }
 
     func stopRestTimer() {
