@@ -25,12 +25,11 @@ class TimerScreenViewModel: ObservableObject {
     @Published var timerMode: TimerMode = .stopped
     @Published var previousMode: TimerMode?
 
+    private var startRestSeconds: Int?
     private var displayTimer: Timer?
     private var timerStartDate: Date?
     private var accumulatedSeconds: TimeInterval = 0
-    private var restStartDate: Date?
     private var accumulatedRestSeconds: TimeInterval = 0
-    private var setRestStart: Bool = false
 
     let workoutManager = WorkoutManager()
 
@@ -56,8 +55,8 @@ class TimerScreenViewModel: ObservableObject {
         if let startDate = timerStartDate {
             elapsedSeconds = Int(accumulatedSeconds + now.timeIntervalSince(startDate))
         }
-        if let restStart = restStartDate {
-            let totalRest = Int(accumulatedRestSeconds + now.timeIntervalSince(restStart))
+        if let restSeconds = startRestSeconds {
+            let totalRest = elapsedSeconds - restSeconds
             elapsedRestSeconds = totalRest
             if totalRest >= restPeriodSeconds {
                 stopRestTimer()
@@ -83,9 +82,6 @@ class TimerScreenViewModel: ObservableObject {
             workoutManager.startWorkout()
         } else if wasPaused {
             timerStartDate = Date()
-            if mode == .resting {
-                restStartDate = Date()
-            }
             workoutManager.resumeWorkout()
         }
 
@@ -100,10 +96,6 @@ class TimerScreenViewModel: ObservableObject {
             accumulatedSeconds += Date().timeIntervalSince(startDate)
             timerStartDate = nil
         }
-        if let restStart = restStartDate {
-            accumulatedRestSeconds += Date().timeIntervalSince(restStart)
-            restStartDate = nil
-        }
 
         displayTimer?.invalidate()
         displayTimer = nil
@@ -116,7 +108,6 @@ class TimerScreenViewModel: ObservableObject {
         displayTimer = nil
         timerStartDate = nil
         accumulatedSeconds = 0
-        restStartDate = nil
         accumulatedRestSeconds = 0
         elapsedSeconds = 0
         elapsedRestSeconds = 0
@@ -124,7 +115,7 @@ class TimerScreenViewModel: ObservableObject {
     }
 
     func startRestTimer() {
-        restStartDate = Date()
+        startRestSeconds = elapsedSeconds
         previousMode = timerMode
         timerMode = .resting
         accumulatedRestSeconds = 0
@@ -132,8 +123,8 @@ class TimerScreenViewModel: ObservableObject {
 
     func stopRestTimer() {
         timerMode = previousMode ?? .running
+        startRestSeconds = nil
         previousMode = nil
-        restStartDate = nil
         accumulatedRestSeconds = 0
         elapsedRestSeconds = 0
         WKInterfaceDevice.current().play(.start)

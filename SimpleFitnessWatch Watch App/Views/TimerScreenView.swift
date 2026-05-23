@@ -99,7 +99,6 @@ struct TimerScreenView: View {
                         systemImage: "bed.double.fill",
                         tint: .blue
                     ) {
-                        //viewModel.startTimer(mode: .resting)
                         viewModel.startRestTimer()
                     }
                     .disabled(viewModel.timerMode == .resting || viewModel.timerMode == .pausedResting)
