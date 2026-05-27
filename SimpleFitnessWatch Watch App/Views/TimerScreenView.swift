@@ -11,7 +11,7 @@ struct TimerScreenView: View {
     @ObservedObject var viewModel: TimerScreenViewModel
 
     var body: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 3) {
             timerModeLabel
             timerDisplay
             buttonGrid
@@ -64,7 +64,7 @@ struct TimerScreenView: View {
 
 
     private var buttonGrid: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 3) {
             if viewModel.timerMode == .stopped {
                 TimerButton(
                     title: "Start",
@@ -74,12 +74,21 @@ struct TimerScreenView: View {
                     viewModel.startTimer(mode: .running)
                 }
             } else {
+                TimerButton(
+                    title: "Rest",
+                    systemImage: "hourglass",
+                    tint: .blue
+                ) {
+                    viewModel.startRestTimer()
+                }
+                .disabled(viewModel.timerMode == .resting || viewModel.timerMode == .paused || viewModel.timerMode == .pausedResting)
+                
                 HStack(spacing: 4) {
                     if viewModel.timerMode == .running || viewModel.timerMode == .resting {
                         TimerButton(
                             title: "Pause",
                             systemImage: "pause.fill",
-                            tint: .yellow
+                            tint: .green
                         ) {
                             viewModel.pauseTimer()
                         }
@@ -93,24 +102,15 @@ struct TimerScreenView: View {
                             viewModel.startTimer(mode: newMode)
                         }
                     }
-
+                    
                     TimerButton(
-                        title: "Rest",
-                        systemImage: "bed.double.fill",
-                        tint: .blue
+                        title: "Stop",
+                        systemImage: "stop.fill",
+                        tint: .red
                     ) {
-                        //viewModel.startTimer(mode: .resting)
-                        viewModel.startRestTimer()
+                        viewModel.stopTimer()
                     }
-                    .disabled(viewModel.timerMode == .resting || viewModel.timerMode == .pausedResting)
-                }
-
-                TimerButton(
-                    title: "Stop",
-                    systemImage: "stop.fill",
-                    tint: .red
-                ) {
-                    viewModel.stopTimer()
+                    
                 }
             }
         }
