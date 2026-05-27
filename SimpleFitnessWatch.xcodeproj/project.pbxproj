@@ -461,6 +461,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "SimpleFitnessWatch-Watch-App-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = SimpleFitnessWatch;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSHealthClinicalHealthRecordsShareUsageDescription = "The SimpleFitnessWatch app would like access to your fitness data";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "The SimpleFitnessWatch app would like access to your fitness data";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "The SimpleFitnessWatch app would like access to your fitness data";
@@ -502,6 +503,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "SimpleFitnessWatch-Watch-App-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = SimpleFitnessWatch;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSHealthClinicalHealthRecordsShareUsageDescription = "The SimpleFitnessWatch app would like access to your fitness data";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "The SimpleFitnessWatch app would like access to your fitness data";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "The SimpleFitnessWatch app would like access to your fitness data";
