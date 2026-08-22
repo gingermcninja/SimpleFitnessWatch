@@ -141,4 +141,3 @@ struct TimerButton: View {
 #Preview {
     TimerScreenView(viewModel: TimerScreenViewModel(restPeriodSeconds: 60))
 }
-
